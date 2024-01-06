@@ -17,6 +17,7 @@ import time
 from time import sleep
 from threading import Thread
 import requests
+from cherrypy.process import plugins
 
 class Server(object):
      def __init__(self):
@@ -36,18 +37,23 @@ class Server(object):
         else:
             return False
 
-class MasterServer(object):
+class MasterServer(plugins.SimplePlugin):
 
-    def __init__(self):
+    def start(self):
+        print("__Starting server.__")
         # Time between heartbeat in seconds, this is passed to the client and kept in sync.
         self.time_between_heartbeats = 30
         self.serverlist = []
+        self.is_running=True
         thread = Thread(target = self.heartbeat)
         thread.start()
 
+    def stop(self):
+        print("___Stopping server.__")
+        self.is_running=False
 
     def heartbeat(self):
-        while True:
+        while self.is_running:
             for server in self.serverlist:
                 delta = int(time.time()) - server.timeoflastheartbeat
                 if (delta > self.time_between_heartbeats):
@@ -149,5 +155,6 @@ cherrypy.config.update({ 'server.socket_port': 8081,
                          'server.thread_pool' : 100
                        })
 
-masterserver = MasterServer()
+masterserver = MasterServer(cherrypy.engine)
+masterserver.subscribe()
 cherrypy.quickstart(masterserver)
