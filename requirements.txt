@@ -10,7 +10,6 @@ more-itertools
 pip
 portend
 pytz
-pywin32
 requests
 setuptools
 six

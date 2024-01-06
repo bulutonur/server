@@ -149,10 +149,13 @@ class MasterServer(plugins.SimplePlugin):
 
 
 
-cherrypy.config.update({ 'server.socket_port': 8081,
+cherrypy.config.update({ 'server.socket_port': 443,
                          'server.socket_host': '0.0.0.0',
                          "server.ssl_module": "pyopenssl",
-                         'server.thread_pool' : 100
+                         'server.thread_pool' : 100,
+                         'ssl_certificate' : "cert.pem",
+                         'ssl_private_key' : "privkey.pem"
+
                        })
 
 masterserver = MasterServer(cherrypy.engine)
