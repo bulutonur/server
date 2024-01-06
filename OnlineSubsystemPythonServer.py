@@ -20,7 +20,7 @@ import requests
 
 class Server(object):
      def __init__(self):
-        self.registeredby = ''
+        self.ip = ''
         self.name = ''
         self.port = 0
         self.map = ''
@@ -56,8 +56,13 @@ class MasterServer(object):
             
     @cherrypy.expose
     def register_server(self, name, port, map, maxplayers, pwprotected, gamemode):
+        # Required. Else does not work
+        b_pwprotected = False
+        if pwprotected=="True":
+            b_pwprotected=True
+
         if self.server_exists(cherrypy.request.remote.ip, port):
-            self.internal_update_server(cherrypy.request.remote.ip, port, name, map, 0, maxplayers, pwprotected, gamemode)
+            self.internal_update_server(cherrypy.request.remote.ip, port, name, map, 0, maxplayers, b_pwprotected, gamemode)
             return json.dumps({'error' : False, 'message' : 'Sucessfully updated your server [%s %s:%s] on the server browser.' % (name, cherrypy.request.remote.ip, port)})
         else:
             server = Server()
@@ -66,7 +71,7 @@ class MasterServer(object):
             server.port = port
             server.map = map
             server.maxplayers = maxplayers
-            server.pwprotected = pwprotected
+            server.pwprotected = b_pwprotected
             server.gamemode = gamemode
             server.timeoflastheartbeat = int(time.time())
             try:
@@ -97,7 +102,12 @@ class MasterServer(object):
 
     @cherrypy.expose
     def update_server(self, port, name, map, playercount, maxplayers, pwprotected, gamemode):
-        if self.internal_update_server(cherrypy.request.remote.ip, port, name, map, playercount, maxplayers, pwprotected, gamemode):
+        # Required. Else does not work
+        b_pwprotected = False
+        if pwprotected == "True":
+            b_pwprotected = True
+
+        if self.internal_update_server(cherrypy.request.remote.ip, port, name, map, playercount, maxplayers, b_pwprotected, gamemode):
             return json.dumps({'error' : False, 'message' : 'Sucessfully updated your server [%s %s:%s] on the server browser.' % (name, cherrypy.request.remote.ip, port)})
         return json.dumps({'error' : True, 'message' : 'Server not registered'})
          
@@ -111,14 +121,15 @@ class MasterServer(object):
     @cherrypy.expose
     def unregister_server(self, port):
         for server in self.serverlist:
-            if (server.registeredby == cherrypy.request.remote.ip and server.port == port):
+            if (server.ip == cherrypy.request.remote.ip and server.port == port):
                 self.serverlist.remove(server)
 
     @cherrypy.expose
     def get_serverlist(self):
         self.returnlist = []
         for server in self.serverlist:
-            jsonstring = {'name' : server.name, 'port' : server.port, 'map' : server.map, 'playercount' : server.playercount, 'maxplayers' : server.maxplayers, 'pwprotected' : server.pwprotected, 'gamemode' : server.gamemode, 'ip' : server.ip }
+            # Some values had to be casted for working correctly
+            jsonstring = {'name' : server.name, 'port' : int(server.port), 'map' : server.map, 'playercount' : int(server.playercount), 'maxplayers' : int(server.maxplayers), 'pwprotected' : bool(server.pwprotected), 'gamemode' : server.gamemode, 'ip' : server.ip }
             self.returnlist.append(jsonstring)
         return json.dumps({'error' : False, 'message' : '', 'servers' : self.returnlist})
 
