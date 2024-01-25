@@ -67,9 +67,10 @@ class MasterServer(plugins.SimplePlugin):
         if pwprotected=="True":
             b_pwprotected=True
 
+        print(f"ip={cherrypy.request.remote.ip}")
         if self.server_exists(cherrypy.request.remote.ip, port):
             self.internal_update_server(cherrypy.request.remote.ip, port, name, map, 0, maxplayers, b_pwprotected, gamemode)
-            return json.dumps({'error' : False, 'message' : 'Sucessfully updated your server [%s %s:%s] on the server browser.' % (name, cherrypy.request.remote.ip, port)})
+            return json.dumps({'error' : False, 'message' : 'Successfully updated your server [%s %s:%s] on the server browser.' % (name, cherrypy.request.remote.ip, port)})
         else:
             server = Server()
             server.ip = cherrypy.request.remote.ip
@@ -149,13 +150,10 @@ class MasterServer(plugins.SimplePlugin):
 
 
 
-cherrypy.config.update({ 'server.socket_port': 443,
-                         'server.socket_host': '0.0.0.0',
+cherrypy.config.update({ 'server.socket_port': 8081,
+                         'server.socket_host': '::',
                          "server.ssl_module": "builtin",
-                         'server.thread_pool' : 100,
-                         'server.ssl_certificate' : "cert.crt",
-                         'server.ssl_private_key' : "cert.key"
-
+                         'server.thread_pool' : 100
                        })
 
 masterserver = MasterServer(cherrypy.engine)
